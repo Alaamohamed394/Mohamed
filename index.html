@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>شركة الأندلس للتقسيط</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <script>
+    // تحقق من وجود مستخدم مسجل الدخول
+    const loggedUser = JSON.parse(localStorage.getItem('loggedUser'));
+    if (!loggedUser) {
+      window.location.href = 'login.html';
+    } else {
+      console.log('مرحبا بك يا ' + loggedUser.username + ' - الصلاحية: ' + loggedUser.role);
+    }
+
+    function logout() {
+      localStorage.removeItem('loggedUser');
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <button onclick="logout()" style="position: fixed; top: 10px; left: 10px; padding: 8px 15px; border:none; border-radius:6px; background:#c0392b; color:white; cursor:pointer;">
+    تسجيل خروج
+  </button>
+
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Al-Andalus_flag.svg/1200px-Al-Andalus_flag.svg.png" alt="لوجو الأندلس">
+    <h1>شركة الأندلس للتقسيط</h1>
+  </header>
+
+  <main>
+    <div class="calculator">
+      <label for="principal">المبلغ الأصلي (بالجنيه):</label>
+      <input type="number" id="principal" placeholder="أدخل المبلغ">
+
+      <label for="months">مدة التقسيط (بالشهور):</label>
+      <select id="months">
+        <option value="">اختر المدة</option>
+        <option value="3">3 شهور</option>
+        <option value="6">6 شهور</option>
+        <option value="10">10 شهور</option>
+        <option value="12">12 شهر</option>
+        <option value="15">15 شهر</option>
+        <option value="18">18 شهر</option>
+        <option value="24">24 شهر</option>
+      </select>
+
+      <button onclick="calculateInterest()">احسب الفائدة</button>
+    </div>
+
+    <!-- مودال عرض النتيجة -->
+    <div id="resultModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('resultModal')">&times;</span>
+        <h2>نتيجة حساب الفائدة</h2>
+        <div id="resultContent" style="font-size:18px; color:#34495e;"></div>
+      </div>
+    </div>
+
+    <button class="open-modal" onclick="openModal('clientModal')">
+      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="+" >
+      إضافة عميل جديد
+    </button>
+
+    <button class="open-modal" onclick="openModal('clientsListModal')">
+      <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="قائمة" >
+      عرض قائمة العملاء
+    </button>
+
+    <!-- مودال إضافة عميل -->
+    <div id="clientModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('clientModal')">&times;</span>
+        <h2>إضافة عميل جديد</h2>
+
+        <label for="clientName">اسم العميل:</label>
+        <input type="text" id="clientName" placeholder="أدخل اسم العميل" />
+
+        <label for="nationalId">الرقم القومي:</label>
+        <input type="text" id="nationalId" placeholder="أدخل الرقم القومي" maxlength="14" />
+
+        <button onclick="addClient()">حفظ العميل</button>
+      </div>
+    </div>
+
+    <!-- مودال قائمة العملاء -->
+    <div id="clientsListModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('clientsListModal')">&times;</span>
+        <h2>قائمة العملاء</h2>
+        <table class="clients-table">
+          <thead>
+            <tr>
+              <th>اسم العميل</th>
+              <th>الرقم القومي</th>
+              <th>تعديل</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody id="clientsTableBody">
+            <!-- سيتم ملء القائمة بالعملاء -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- مودال تعديل عميل -->
+    <div id="editClientModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('editClientModal')">&times;</span>
+        <h2>تعديل بيانات العميل</h2>
+
+        <label for="editClientName">اسم العميل:</label>
+        <input type="text" id="editClientName" />
+
+        <label for="editNationalId">الرقم القومي:</label>
+        <input type="text" id="editNationalId" maxlength="14" />
+
+        <button onclick="saveEditedClient()">حفظ التعديلات</button>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="clock"></div>
+
+  <script>
+    // الساعة
+    function updateClock() {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2, '0');
+      const m = now.getMinutes().toString().padStart(2, '0');
+      const s = now.getSeconds().toString().padStart(2, '0');
+      document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // حساب الفائدة (كمثال)
+    function calculateInterest() {
+      const principal = parseFloat(document.getElementById('principal').value);
+      const months = parseInt(document.getElementById('months').value);
+
+      if (isNaN(principal) || principal <= 0) {
+        alert('يرجى إدخال مبلغ صالح.');
+        return;
+      }
+      if (isNaN(months) || months <= 0) {
+        alert('يرجى اختيار مدة التقسيط.');
+        return;
+      }
+
+      // حساب الفائدة - نفترض نسبة ثابتة حسب المدة (مثال)
+      let rate;
+      if (months <= 6) rate = 0.05;
+      else if (months <= 12) rate = 0.1;
+      else if (months <= 18) rate = 0.15;
+      else rate = 0.2;
+
+      const interest = principal * rate;
+      const total = principal + interest;
+      const monthly = total / months;
+
+      const result = `
+        المبلغ الأصلي: ${principal.toFixed(2)} جنيه<br/>
+        مدة التقسيط: ${months} شهر<br/>
+        نسبة الفائدة: ${(rate * 100).toFixed(1)}%<br/>
+        قيمة الفائدة: ${interest.toFixed(2)} جنيه<br/>
+        المبلغ الكلي بعد الفائدة: ${total.toFixed(2)} جنيه<br/>
+        قيمة القسط الشهري: ${monthly.toFixed(2)} جنيه
+      `;
+
+      document.getElementById('resultContent').innerHTML = result;
+      openModal('resultModal');
+    }
+
+    // فتح وغلق المودالات
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // إدارة العملاء (تخزين في LocalStorage)
+    let clients = JSON.parse(localStorage.getItem('clients')) || [];
+
+    function addClient() {
+      const name = document.getElementById('clientName').value.trim();
+      const nationalId = document.getElementById('nationalId').value.trim();
+
+      if (!name || !nationalId) {
+        alert('يرجى ملء جميع الحقول.');
+        return;
+      }
+      if (nationalId.length !== 14 || !/^\d+$/.test(nationalId)) {
+        alert('الرقم القومي يجب أن يكون 14 رقمًا.');
+        return;
+      }
+
+      clients.push({ name, nationalId });
+      localStorage.setItem('clients', JSON.stringify(clients));
+      document.getElementById('clientName').value = '';
+      document.getElementById('nationalId').value = '';
+      closeModal('clientModal');
+      loadClientsList();
+    }
+
+    function loadClientsList() {
+      const tbody = document.getElementById('clientsTableBody');
+      tbody.innerHTML = '';
+      clients.forEach((client, index) => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="client-name" onclick="openEditModal(${index})">${client.name}</td>
+            <td>${client.nationalId}</td>
+            <td><button onclick="openEditModal(${index})">تعديل</button></td>
+            <td><button onclick="deleteClient(${index})">حذف</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    let editIndex = null;
+
+    function openEditModal(index) {
+      editIndex = index;
+      document.getElementById('editClientName').value = clients[index].name;
+      document.getElementById('editNationalId').value = clients[index].nationalId;
+      openModal('editClientModal');
+    }
+
+    function saveEditedClient() {
+      const newName = document.getElementById('editClientName').value.trim();
+      const newNationalId = document.getElementById('editNationalId').value.trim();
+
+      if (!newName || !newNationalId) {
+        alert('يرجى ملء جميع الحقول.');
+        return;
+      }
+      if (newNationalId.length !== 14 || !/^\d+$/.test(newNationalId)) {
+        alert('الرقم القومي يجب أن يكون 14 رقمًا.');
+        return;
+      }
+
+      clients[editIndex] = { name: newName, nationalId: newNationalId };
+      localStorage.setItem('clients', JSON.stringify(clients));
+      closeModal('editClientModal');
+      loadClientsList();
+    }
+
+    function deleteClient(index) {
+      if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
+        clients.splice(index, 1);
+        localStorage.setItem('clients', JSON.stringify(clients));
+        loadClientsList();
+      }
+    }
+
+    // تحميل القائمة عند فتح مودال العملاء
+    document.querySelector('.open-modal[onclick*="clientsListModal"]').addEventListener('click', loadClientsList);
+  </script>
+
+</body>
+</html>

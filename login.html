@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تسجيل الدخول - شركة الأندلس للتقسيط</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+      text-align: center;
+      padding: 100px 20px;
+      direction: rtl;
+      font-family: 'Arial', sans-serif;
+    }
+    .login-box {
+      background-color: white;
+      max-width: 350px;
+      margin: auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: right;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #27ae60;
+      color: white;
+      padding: 12px;
+      border: none;
+      width: 100%;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #219150;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+      min-height: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" id="username" placeholder="اسم المستخدم" />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <button onclick="login()">دخول</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <script>
+    const users = [
+      { username: "alaa", password: "2392003", role: "مدير" },
+      { username: "alaa2", password: "2392003", role: "موظف" },
+      { username: "employee2", password: "password2", role: "موظف" }
+    ];
+
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if(user) {
+        localStorage.setItem('loggedUser', JSON.stringify(user));
+        window.location.href = 'index.html';
+      } else {
+        errorMsg.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+      }
+    }
+  </script>
+
+</body>
+</html>
